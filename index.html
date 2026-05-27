@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Layout Tool</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="app-header">
+    <h1>Layout</h1>
+    <button type="button" id="export-dxf" class="btn-export">Export DXF</button>
+  </header>
+
+  <main class="app-main">
+    <section class="preview-section" aria-label="Preview">
+      <canvas id="preview" aria-hidden="true"></canvas>
+      <p class="preview-hint" id="preview-hint">mm</p>
+    </section>
+
+    <section class="params-section" aria-label="Parameters">
+      <form id="params-form" autocomplete="off">
+        <fieldset class="param-group">
+          <legend>Area</legend>
+          <label class="param-row">
+            <span class="param-label">Width</span>
+            <input type="range" id="area-width" name="areaWidth" min="100" max="15000" step="10" value="1200">
+            <output id="area-width-out" for="area-width">1200</output>
+            <span class="param-unit">mm</span>
+          </label>
+          <label class="param-row">
+            <span class="param-label">Height</span>
+            <input type="range" id="area-height" name="areaHeight" min="100" max="10000" step="10" value="800">
+            <output id="area-height-out" for="area-height">800</output>
+            <span class="param-unit">mm</span>
+          </label>
+        </fieldset>
+
+        <fieldset class="param-group">
+          <legend>Layout</legend>
+          <label class="param-row">
+            <span class="param-label">Layout</span>
+            <select id="layout-mode" name="layoutMode">
+              <option value="aligned" selected>Aligned</option>
+              <option value="staggered">Staggered</option>
+            </select>
+          </label>
+
+          <label class="param-row" id="type-row">
+            <span class="param-label">Type</span>
+            <select id="align-type" name="alignType">
+              <option value="full" selected>Full</option>
+              <option value="equal">Equal</option>
+              <option value="centered">Centered</option>
+            </select>
+          </label>
+
+          <label class="param-row param-row--hidden" id="stagger-row">
+            <span class="param-label">Stagger</span>
+            <span class="range-wrap range-wrap--stagger">
+              <input type="range" id="stagger" name="stagger" min="0" max="100" step="any" value="50">
+              <div class="stagger-ticks stagger-ticks--main" aria-hidden="false">
+                <button type="button" class="stagger-tick" data-value="75" style="left: 75%" aria-label="25% stagger"></button>
+                <button type="button" class="stagger-tick" data-value="50" style="left: 50%" aria-label="50% stagger"></button>
+                <button type="button" class="stagger-tick" data-value="25" style="left: 25%" aria-label="75% stagger"></button>
+              </div>
+              <div class="stagger-ticks stagger-ticks--alt" aria-hidden="true">
+                <button type="button" class="stagger-tick" data-stagger="one-third" aria-label="33⅓% stagger"></button>
+                <button type="button" class="stagger-tick" data-stagger="two-thirds" aria-label="66⅔% stagger"></button>
+              </div>
+              <div class="stagger-ticks stagger-ticks--toggle" aria-hidden="false">
+                <button type="button" id="stagger-toggle" class="stagger-tick stagger-tick--aux stagger-tick--placeholder" style="left: 100%" aria-label="Toggle stagger tick mode" aria-pressed="false"></button>
+                <button type="button" id="stagger-r" class="stagger-tick stagger-tick--aux stagger-tick--letter" style="left: 125%" aria-label="Randomize row order" aria-pressed="false">R</button>
+              </div>
+            </span>
+            <output id="stagger-out" for="stagger">50%</output>
+          </label>
+        </fieldset>
+
+        <fieldset class="param-group">
+          <legend>Tile</legend>
+          <label class="param-row">
+            <span class="param-label" id="length-label">Length</span>
+            <input type="range" id="tile-length" name="tileLength" min="50" max="2440" step="1" value="240">
+            <output id="tile-length-out" for="tile-length">240</output>
+            <span class="param-unit">mm</span>
+          </label>
+          <label class="param-row">
+            <span class="param-label" id="width-label">Width</span>
+            <input type="range" id="tile-width" name="tileWidth" min="50" max="1220" step="1" value="160">
+            <output id="tile-width-out" for="tile-width">160</output>
+            <span class="param-unit">mm</span>
+          </label>
+          <label class="param-row">
+            <span class="param-label">Gap</span>
+            <input type="range" id="gap" name="gap" min="0" max="200" step="1" value="12">
+            <output id="gap-out" for="gap">12</output>
+            <span class="param-unit">mm</span>
+          </label>
+        </fieldset>
+      </form>
+    </section>
+  </main>
+
+  <script src="stagger-constants.js"></script>
+  <script src="layout-engine.js"></script>
+  <script src="dxf-export.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
