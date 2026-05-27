@@ -7,18 +7,16 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <header class="app-header">
-    <h1>Layout</h1>
-    <button type="button" id="export-dxf" class="btn-export">Export DXF</button>
-  </header>
-
   <main class="app-main">
     <section class="preview-section" aria-label="Preview">
       <canvas id="preview" aria-hidden="true"></canvas>
-      <p class="preview-hint" id="preview-hint">mm</p>
     </section>
 
     <section class="params-section" aria-label="Parameters">
+      <div class="params-toolbar">
+        <h2 class="params-title">Layout</h2>
+        <button type="button" id="export-dxf" class="btn-export">Export DXF</button>
+      </div>
       <form id="params-form" autocomplete="off">
         <fieldset class="param-group">
           <legend>Area</legend>

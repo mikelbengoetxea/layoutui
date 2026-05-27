@@ -25,7 +25,6 @@
     typeRow: document.getElementById("type-row"),
     staggerRow: document.getElementById("stagger-row"),
     exportBtn: document.getElementById("export-dxf"),
-    previewHint: document.getElementById("preview-hint"),
   };
 
   const STROKE = "#5ee06a";
@@ -169,11 +168,7 @@
     els.lengthLabel.parentElement.classList.toggle("param-row--max-hint", equal);
     els.widthLabel.parentElement.classList.toggle("param-row--max-hint", equal);
 
-    const hint =
-      equal && lastLayout && lastLayout.cellLength != null
-        ? `Equal: ${num(lastLayout.cellLength)} × ${num(lastLayout.cellWidth)} mm`
-        : "mm";
-    els.previewHint.textContent = hint;
+    // Preview hint removed (was showing "mm"/equal cell size).
   }
 
   function num(n) {
@@ -324,21 +319,7 @@
       );
     }
 
-    drawDimensionH(
-      ctx,
-      ox,
-      ox + drawW,
-      oy + drawH,
-      num(lastLayout.areaWidth) + " mm",
-      true
-    );
-    drawDimensionV(
-      ctx,
-      oy,
-      oy + drawH,
-      ox,
-      num(lastLayout.areaHeight) + " mm"
-    );
+    // (Area dimension annotations removed per UI request.)
   }
 
   function onChange() {
