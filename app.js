@@ -27,6 +27,7 @@
     exportBtn: document.getElementById("export-dxf"),
     fullscreenBtn: document.getElementById("fullscreen-btn"),
     fullscreenExit: document.getElementById("fullscreen-exit"),
+    midiBtn: document.getElementById("midi-btn"),
   };
 
   const STROKE = "#5ee06a";
@@ -84,8 +85,9 @@
     const areaH = Math.max(1, p.areaHeight);
     const W = Math.max(1, p.tileWidth);
     const G = Math.max(0, p.gap);
+    const effectiveAlignType = p.layoutMode === "staggered" ? "full" : p.alignType;
     const equalRow =
-      p.alignType === "equal"
+      effectiveAlignType === "equal"
         ? (function () {
             for (let n = 1; n <= 500; n++) {
               const s = (areaH - (n - 1) * G) / n;
@@ -503,8 +505,12 @@
     },
   };
 
+  let midiEnabled = false;
+  let midiAccess = null;
+
   function bindMidiInput(input) {
     input.onmidimessage = function (msg) {
+      if (!midiEnabled) return;
       const statusByte = msg.data[0];
       const status = statusByte & 0xf0;
       const channel = (statusByte & 0x0f) + 1;
@@ -516,22 +522,68 @@
     };
   }
 
-  function initMidi() {
-    if (!navigator.requestMIDIAccess) return;
-    navigator.requestMIDIAccess().then(function (access) {
+  function unbindAllMidiInputs() {
+    if (!midiAccess) return;
+    for (const input of midiAccess.inputs.values()) {
+      input.onmidimessage = null;
+    }
+    midiAccess.onstatechange = null;
+  }
+
+  function ensureMidiAccess() {
+    if (!navigator.requestMIDIAccess) return Promise.reject(new Error("no-midi"));
+    if (midiAccess) return Promise.resolve(midiAccess);
+    return navigator.requestMIDIAccess().then(function (access) {
+      midiAccess = access;
+      return access;
+    });
+  }
+
+  function enableMidi() {
+    return ensureMidiAccess().then(function (access) {
+      midiEnabled = true;
       for (const input of access.inputs.values()) {
         bindMidiInput(input);
       }
       access.onstatechange = function (e) {
-        if (e.port.type === "input" && e.port.state === "connected") {
+        if (!midiEnabled) return;
+        if (e.port.type !== "input") return;
+        if (e.port.state === "connected") {
           bindMidiInput(e.port);
+        } else if (e.port.state === "disconnected") {
+          e.port.onmidimessage = null;
         }
       };
-    }).catch(function () {});
+    });
   }
 
-  initMidi();
-  document.addEventListener("pointerdown", initMidi, { once: true });
+  function disableMidi() {
+    midiEnabled = false;
+    unbindAllMidiInputs();
+  }
+
+  if (els.midiBtn) {
+    if (!navigator.requestMIDIAccess) {
+      els.midiBtn.style.display = "none";
+    } else {
+      els.midiBtn.addEventListener("click", function () {
+        const nextOn = els.midiBtn.getAttribute("aria-pressed") !== "true";
+        if (nextOn) {
+          enableMidi()
+            .then(function () {
+              els.midiBtn.setAttribute("aria-pressed", "true");
+            })
+            .catch(function () {
+              els.midiBtn.setAttribute("aria-pressed", "false");
+              midiEnabled = false;
+            });
+        } else {
+          disableMidi();
+          els.midiBtn.setAttribute("aria-pressed", "false");
+        }
+      });
+    }
+  }
 
   render();
 })();

@@ -256,6 +256,8 @@
     const G = Math.max(0, opts.gap);
     const layoutMode = opts.layoutMode;
     const alignType = opts.alignType;
+    // Staggered is its own layout; it shouldn't inherit aligned sub-modes.
+    const effectiveAlignType = layoutMode === "staggered" ? "full" : alignType;
     const tilePeriod = L + G;
     const staggerStep =
       layoutMode === "staggered"
@@ -281,11 +283,11 @@
     }
 
     const equalRow =
-      alignType === "equal"
+      effectiveAlignType === "equal"
         ? equalDivision(areaH, W, G)
         : null;
     const cellLength =
-      alignType === "equal"
+      effectiveAlignType === "equal"
         ? equalDivision(areaW, L, G).size
         : L;
     const cellWidth = equalRow ? equalRow.size : W;
@@ -293,11 +295,11 @@
     const rects = [];
     const maxRows = equalRow ? equalRow.count : null;
     const useVerticalCenter =
-      alignType === "centered" && layoutMode === "aligned";
+      effectiveAlignType === "centered" && layoutMode === "aligned";
 
     function placeRow(rowIndex, y, rowH) {
       const xOff = rowStaggerOffset(rowIndex);
-      let hTiles = rowTiles(areaW + xOff, cellLength, G, alignType);
+      let hTiles = rowTiles(areaW + xOff, cellLength, G, effectiveAlignType);
 
       if (xOff > 1e-6) {
         const shifted = [];
@@ -349,8 +351,8 @@
       areaWidth: areaW,
       areaHeight: areaH,
       rects,
-      cellLength: alignType === "equal" ? cellLength : null,
-      cellWidth: alignType === "equal" ? cellWidth : null,
+      cellLength: effectiveAlignType === "equal" ? cellLength : null,
+      cellWidth: effectiveAlignType === "equal" ? cellWidth : null,
     };
   }
 
