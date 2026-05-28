@@ -53,6 +53,35 @@ body {
   background: rgba(94, 224, 106, 0.15);
 }
 
+.btn-fs {
+  min-height: var(--touch-min);
+  padding: 0.45rem 0.9rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-size: 0.9rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.btn-fs:active {
+  background: rgba(232, 236, 242, 0.08);
+}
+
+.btn-fs--overlay {
+  position: absolute;
+  top: max(0.6rem, env(safe-area-inset-top));
+  right: max(0.6rem, env(safe-area-inset-right));
+  z-index: 5;
+  display: none;
+}
+
+.is-fullscreen .btn-fs--overlay {
+  display: inline-flex;
+}
+
 .params-toolbar {
   display: flex;
   align-items: center;
@@ -61,6 +90,19 @@ body {
   padding: 0.35rem 0;
   margin-bottom: 0.5rem;
   border-bottom: 1px solid var(--border);
+}
+
+.params-toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.midi-debug {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .params-title {
@@ -107,6 +149,14 @@ body {
 }
 
 /* preview-hint removed */
+
+.is-fullscreen .params-section {
+  display: none;
+}
+
+.is-fullscreen .preview-section {
+  padding: 0;
+}
 
 .params-section {
   flex: 0 1 auto;

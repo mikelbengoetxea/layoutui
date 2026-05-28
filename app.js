@@ -25,6 +25,8 @@
     typeRow: document.getElementById("type-row"),
     staggerRow: document.getElementById("stagger-row"),
     exportBtn: document.getElementById("export-dxf"),
+    fullscreenBtn: document.getElementById("fullscreen-btn"),
+    fullscreenExit: document.getElementById("fullscreen-exit"),
   };
 
   const STROKE = "#5ee06a";
@@ -387,6 +389,47 @@
     DxfExport.downloadDxf(lastLayout, "layout.dxf");
   });
 
+  function syncFullscreenState() {
+    const isFs = !!document.fullscreenElement;
+    document.body.classList.toggle("is-fullscreen", isFs);
+    if (els.fullscreenBtn) {
+      els.fullscreenBtn.setAttribute("aria-pressed", isFs ? "true" : "false");
+    }
+    // When entering/exiting fullscreen the canvas size changes.
+    render();
+  }
+
+  function toggleFullscreen() {
+    if (!document.fullscreenEnabled) return;
+    if (document.fullscreenElement) {
+      document.exitFullscreen().catch(function () {});
+    } else {
+      document.documentElement.requestFullscreen().catch(function () {});
+    }
+  }
+
+  if (els.fullscreenBtn) {
+    if (!document.fullscreenEnabled) {
+      els.fullscreenBtn.style.display = "none";
+    } else {
+      els.fullscreenBtn.addEventListener("click", function () {
+        toggleFullscreen();
+      });
+    }
+  }
+
+  if (els.fullscreenExit) {
+    if (!document.fullscreenEnabled) {
+      els.fullscreenExit.style.display = "none";
+    } else {
+      els.fullscreenExit.addEventListener("click", function () {
+        toggleFullscreen();
+      });
+    }
+  }
+
+  document.addEventListener("fullscreenchange", syncFullscreenState);
+
   let resizeTimer;
   window.addEventListener("resize", function () {
     clearTimeout(resizeTimer);
@@ -400,6 +443,95 @@
     ro.observe(canvas.parentElement);
     ro.observe(document.querySelector(".app-main"));
   }
+
+  const midiAnims = {
+    areaHeight: { raf: 0, from: 0, to: 0, t0: 0, ms: 320 },
+    areaWidth: { raf: 0, from: 0, to: 0, t0: 0, ms: 320 },
+    tileLength: { raf: 0, from: 0, to: 0, t0: 0, ms: 320 },
+    tileWidth: { raf: 0, from: 0, to: 0, t0: 0, ms: 320 },
+  };
+
+  // Fast start, slow end (ease-out).
+  function easeOutCubic(t) {
+    return 1 - Math.pow(1 - t, 3);
+  }
+
+  function animateRangeTo(input, anim, target) {
+    if (anim.raf) cancelAnimationFrame(anim.raf);
+    anim.from = Number(input.value);
+    anim.to = Number(target);
+    anim.t0 = performance.now();
+
+    function step(now) {
+      const t = Math.min(1, (now - anim.t0) / anim.ms);
+      const e = easeOutCubic(t);
+      const v = Math.round(anim.from + (anim.to - anim.from) * e);
+      input.value = String(v);
+      input.dispatchEvent(new Event("input", { bubbles: true }));
+      if (t < 1) {
+        anim.raf = requestAnimationFrame(step);
+      } else {
+        anim.raf = 0;
+      }
+    }
+
+    anim.raf = requestAnimationFrame(step);
+  }
+
+  function randomizeRangeMidi(input, anim) {
+    const min = Number(input.min) || 0;
+    const max = Number(input.max) || 100;
+    const step = Number(input.step) || 1;
+    const span = max - min;
+    const steps = Math.max(0, Math.floor(span / step));
+    const value = min + Math.floor(Math.random() * (steps + 1)) * step;
+    animateRangeTo(input, anim, value);
+  }
+
+  const midiChannelMap = {
+    3: function () {
+      randomizeRangeMidi(els.areaHeight, midiAnims.areaHeight);
+    },
+    4: function () {
+      randomizeRangeMidi(els.areaWidth, midiAnims.areaWidth);
+    },
+    5: function () {
+      randomizeRangeMidi(els.tileLength, midiAnims.tileLength);
+    },
+    6: function () {
+      randomizeRangeMidi(els.tileWidth, midiAnims.tileWidth);
+    },
+  };
+
+  function bindMidiInput(input) {
+    input.onmidimessage = function (msg) {
+      const statusByte = msg.data[0];
+      const status = statusByte & 0xf0;
+      const channel = (statusByte & 0x0f) + 1;
+      const velocity = msg.data[2];
+      if (status === 0x90 && velocity > 0) {
+        const handler = midiChannelMap[channel];
+        if (handler) handler();
+      }
+    };
+  }
+
+  function initMidi() {
+    if (!navigator.requestMIDIAccess) return;
+    navigator.requestMIDIAccess().then(function (access) {
+      for (const input of access.inputs.values()) {
+        bindMidiInput(input);
+      }
+      access.onstatechange = function (e) {
+        if (e.port.type === "input" && e.port.state === "connected") {
+          bindMidiInput(e.port);
+        }
+      };
+    }).catch(function () {});
+  }
+
+  initMidi();
+  document.addEventListener("pointerdown", initMidi, { once: true });
 
   render();
 })();

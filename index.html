@@ -9,13 +9,21 @@
 <body>
   <main class="app-main">
     <section class="preview-section" aria-label="Preview">
+      <button type="button" id="fullscreen-exit" class="btn-fs btn-fs--overlay" aria-label="Exit full screen">
+        Exit
+      </button>
       <canvas id="preview" aria-hidden="true"></canvas>
     </section>
 
     <section class="params-section" aria-label="Parameters">
       <div class="params-toolbar">
         <h2 class="params-title">Layout</h2>
-        <button type="button" id="export-dxf" class="btn-export">Export DXF</button>
+        <div class="params-toolbar-right">
+          <button type="button" id="fullscreen-btn" class="btn-fs" aria-label="Full screen">
+            Full screen
+          </button>
+          <button type="button" id="export-dxf" class="btn-export">Export DXF</button>
+        </div>
       </div>
       <form id="params-form" autocomplete="off">
         <fieldset class="param-group">
